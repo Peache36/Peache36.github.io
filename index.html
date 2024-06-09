@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Object Comparison</title>
+    <style>
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 50px;
+        }
+        .objects {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .object {
+            width: 100px;
+            height: 100px;
+            margin: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: grab;
+            color: white;
+            font-weight: bold;
+        }
+        .object.green {
+            background-color: green;
+        }
+        .object.blue {
+            background-color: blue;
+        }
+        .object.red {
+            background-color: red;
+        }
+        .object.yellow {
+            background-color: yellow;
+            color: black;
+        }
+        .measure-container {
+            display: flex;
+            justify-content: space-between;
+            width: 600px;
+            border: 2px solid black;
+            margin-bottom: 20px;
+        }
+        .measure {
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+            width: 50%;
+            height: 200px;
+            overflow-y: auto;
+            position: relative;
+        }
+        .measure.left {
+            background-color: lightgreen;
+        }
+        .measure.right {
+            background-color: lightcoral;
+        }
+        .result {
+            width: 600px;
+            height: 100px;
+            background-color: lightgray;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+        }
+        .reset-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="objects">
+            <div id="object1" class="object green" draggable="true" data-value="2">0.2</div>
+            <div id="object2" class="object blue" draggable="true" data-value="1">B</div>
+            <div id="object3" class="object red" draggable="true" data-value="3">C</div>
+            <div id="object4" class="object yellow" draggable="true" data-value="5">D</div>
+        </div>
+        <div class="measure-container">
+            <div class="measure left" id="measureA"></div>
+            <div class="measure right" id="measureB"></div>
+        </div>
+        <div id="result" class="result">Salah</div>
+        <button id="resetButton" class="reset-button">Reset</button>
+    </div>
+
+    <script>
+        const objects = document.querySelectorAll('.object');
+        const measureA = document.getElementById('measureA');
+        const measureB = document.getElementById('measureB');
+        const result = document.getElementById('result');
+        const resetButton = document.getElementById('resetButton');
+
+        let leftValue = 0;
+        let rightValue = 0;
+
+        objects.forEach(object => {
+            object.addEventListener('dragstart', () => {
+                object.classList.add('dragging');
+            });
+
+            object.addEventListener('dragend', () => {
+                object.classList.remove('dragging');
+            });
+        });
+
+        measureA.addEventListener('dragover', e => {
+            e.preventDefault();
+        });
+
+        measureA.addEventListener('drop', e => {
+            e.preventDefault();
+            const draggedObject = document.querySelector('.dragging');
+            if (draggedObject) {
+                const value = parseFloat(draggedObject.dataset.value);
+                leftValue += value;
+                const clone = draggedObject.cloneNode(true);
+                measureA.appendChild(clone);
+                checkResult();
+            }
+        });
+
+        measureB.addEventListener('dragover', e => {
+            e.preventDefault();
+        });
+
+        measureB.addEventListener('drop', e => {
+            e.preventDefault();
+            const draggedObject = document.querySelector('.dragging');
+            if (draggedObject) {
+                const value = parseFloat(draggedObject.dataset.value);
+                rightValue += value;
+                const clone = draggedObject.cloneNode(true);
+                measureB.appendChild(clone);
+                checkResult();
+            }
+        });
+
+        function checkResult() {
+            if (leftValue === rightValue) {
+                result.textContent = "Benar";
+            } else {
+                result.textContent = "Salah";
+            }
+        }
+
+        resetButton.addEventListener('click', () => {
+            // Reset values
+            leftValue = 0;
+            rightValue = 0;
+
+            // Clear measure containers
+            measureA.innerHTML = '';
+            measureB.innerHTML = '';
+
+            // Reset result text
+            result.textContent = "Salah";
+        });
+    </script>
+</body>
+</html>
