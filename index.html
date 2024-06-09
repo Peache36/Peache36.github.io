@@ -56,19 +56,18 @@
         }
 
         .measure-container {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
             margin-bottom: 20px;
         }
 
         .measure {
-            width: 45%;
             border: 2px solid black;
             border-radius: 5px;
-            overflow-y: auto;
+            overflow: hidden;
             position: relative;
-            margin-bottom: 10px;
-            height: 150px; /* Tetapkan tinggi awal */
+            height: 200px; /* Tetapkan tinggi awal */
         }
 
         .measure.left {
@@ -128,105 +127,101 @@
 
     <script>
         const objects = document.querySelectorAll('.object');
-        const measureA = document.getElementById('measureA');
-        const measureB = document.getElementById('measureB');
-        const result = document.getElementById('result');
-        const resetButton = document.getElementById('resetButton');
+const measureA = document.getElementById('measureA');
+const measureB = document.getElementById('measureB');
+const result = document.getElementById('result');
+const resetButton = document.getElementById('resetButton');
 
-        let leftValue = 0;
-        let rightValue = 0;
+let leftValue = 0;
+let rightValue = 0;
 
-        // Event listener untuk setiap objek
-        objects.forEach(object => {
-            object.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                object.classList.add('dragging');
-            });
+// Event listener untuk setiap objek
+objects.forEach(object => {
+    object.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        object.classList.add('dragging');
+    });
 
-            object.addEventListener('touchmove', (e) => {
-                e.preventDefault();
-                const touch = e.touches[0];
-                const offsetX = touch.clientX - object.offsetWidth / 2;
-                const offsetY = touch.clientY - object.offsetHeight / 2;
-                object.style.left = offsetX + 'px';
-                object.style.top = offsetY + 'px';
-            });
+    object.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const offsetX = touch.clientX - object.offsetWidth / 2;
+        const offsetY = touch.clientY - object.offsetHeight / 2;
+        object.style.left = offsetX + 'px';
+        object.style.top = offsetY + 'px';
+    });
 
-            object.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                const rectA = measureA.getBoundingClientRect();
-                const rectB = measureB.getBoundingClientRect();
-                const touch = e.changedTouches[0];
-                const dropX = touch.clientX;
-                const dropY = touch.clientY;
+    object.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        const rectA = measureA.getBoundingClientRect();
+        const rectB = measureB.getBoundingClientRect();
+        const touch = e.changedTouches[0];
+        const dropX = touch.clientX;
+        const dropY = touch.clientY;
 
-                if (dropX >= rectA.left && dropX <= rectA.right && dropY >= rectA.top && dropY <= rectA.bottom) {
-                    const value = parseFloat(object.dataset.value);
-                    leftValue += value;
-                    const clone = object.cloneNode(true);
-                    clone.classList.remove('dragging');
-                    measureA.appendChild(clone);
-                    adjustMeasureSize(measureA);
-                    adjustObject(clone, measureA);
-                } else if (dropX >= rectB.left && dropX <= rectB.right && dropY >= rectB.top && dropY <= rectB.bottom) {
-                    const value = parseFloat(object.dataset.value);
-                    rightValue += value;
-                    const clone = object.cloneNode(true);
-                    clone.classList.remove('dragging');
-                    measureB.appendChild(clone);
-                    adjustMeasureSize(measureB);
-                    adjustObject(clone, measureB);
-                }
-
-                // Reset posisi objek
-                object.removeAttribute('style');
-                object.classList.remove('dragging');
-
-                // Update hasil
-                checkResult();
-            });
-        });
-
-        // Fungsi untuk memeriksa hasil perbandingan
-        function checkResult() {
-            if (leftValue === rightValue) {
-                result.textContent = "Benar";
-            } else {
-                result.textContent = "Salah";
-            }
+        if (dropX >= rectA.left && dropX <= rectA.right && dropY >= rectA.top && dropY <= rectA.bottom) {
+            const value = parseFloat(object.dataset.value);
+            leftValue += value;
+            const clone = object.cloneNode(true);
+            clone.classList.remove('dragging');
+            measureA.appendChild(clone);
+            adjustObjectsInMeasure(measureA);
+        } else if (dropX >= rectB.left && dropX <= rectB.right && dropY >= rectB.top && dropY <= rectB.bottom) {
+            const value = parseFloat(object.dataset.value);
+            rightValue += value;
+            const clone = object.cloneNode(true);
+            clone.classList.remove('dragging');
+            measureB.appendChild(clone);
+            adjustObjectsInMeasure(measureB);
         }
 
-        // Event listener untuk tombol reset
-        resetButton.addEventListener('click', () => {
-            // Reset nilai
-            leftValue = 0;
-            rightValue = 0;
+        // Reset posisi objek
+        object.removeAttribute('style');
+        object.classList.remove('dragging');
 
-            // Hapus elemen di dalam pengukur
-            measureA.innerHTML = '';
-            measureB.innerHTML = '';
+        // Update hasil
+        checkResult();
+    });
+});
 
-            // Reset teks hasil
-            result.textContent = "Salah";
-        });
+// Fungsi untuk memeriksa hasil perbandingan
+function checkResult() {
+    if (leftValue === rightValue) {
+        result.textContent = "Benar";
+    } else {
+        result.textContent = "Salah";
+    }
+}
 
-        // Fungsi untuk menyesuaikan ukuran objek dengan pengukur
-        function adjustObject(object, measure) {
-            const objectRect = object.getBoundingClientRect();
-            const measureRect = measure.getBoundingClientRect();
-            const scaleFactor = Math.min(measureRect.width / objectRect.width, measureRect.height / objectRect.height);
-            object.style.width = (objectRect.width * scaleFactor) + 'px';
-            object.style.height = (objectRect.height * scaleFactor) + 'px';
-        }
+// Event listener untuk tombol reset
+resetButton.addEventListener('click', () => {
+    // Reset nilai
+    leftValue = 0;
+    rightValue = 0;
 
-        // Fungsi untuk menyesuaikan ukuran pengukur berdasarkan jumlah objek
-        function adjustMeasureSize(measure) {
-            const objectsInMeasure = measure.querySelectorAll('.object').length;
-            const defaultHeight = 150; // Tinggi default
-            const adjustedHeight = defaultHeight * objectsInMeasure; // Menghitung tinggi baru
-            measure.style.height = adjustedHeight + 'px'; // Set tinggi baru
-        }
+    // Hapus elemen di dalam pengukur
+    measureA.innerHTML = '';
+    measureB.innerHTML = '';
+
+    // Reset teks hasil
+    result.textContent = "Salah";
+});
+
+// Fungsi untuk menyesuaikan objek di dalam pengukur
+function adjustObjectsInMeasure(measure) {
+    const objects = measure.children;
+    const objectCount = objects.length;
+    const measureWidth = measure.offsetWidth;
+    const measureHeight = measure.offsetHeight;
+    const objectSize = Math.min(measureWidth, measureHeight) / objectCount;
+
+    for (let i = 0; i < objectCount; i++) {
+        const object = objects[i];
+        object.style.width = objectSize + 'px';
+        object.style.height = objectSize + 'px';
+    }
+}
+
     </script>
 </body>
 </html>
-
