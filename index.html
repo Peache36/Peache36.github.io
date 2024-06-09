@@ -6,121 +6,123 @@
     <title>Object Comparison</title>
     <style>
         body {
-            margin: 0;
             font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            margin: 0;
+            padding: 0;
             background-color: #f0f0f0;
         }
+
         .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 90%;
-            max-width: 800px;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
+
         .objects {
             display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
+            justify-content: space-between;
             margin-bottom: 20px;
         }
+
         .object {
             width: 100px;
             height: 100px;
-            margin: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: grab;
             color: white;
             font-weight: bold;
-            user-select: none;
         }
+
         .object.green {
             background-color: green;
         }
+
         .object.blue {
             background-color: blue;
         }
+
         .object.red {
             background-color: red;
         }
+
         .object.yellow {
             background-color: yellow;
             color: black;
         }
+
         .measure-container {
             display: flex;
-            flex-direction: column;
-            width: 100%;
-            border: 2px solid black;
+            justify-content: space-between;
             margin-bottom: 20px;
         }
-        .measure-container-inner {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-        }
+
         .measure {
-            display: flex;
-            align-items: center;
-            flex-direction: column;
-            width: 50%;
-            height: 200px;
+            width: 45%;
+            border: 2px solid black;
+            border-radius: 5px;
             overflow-y: auto;
             position: relative;
-            flex-grow: 1;
+            margin-bottom: 10px;
+            height: 150px; /* Tetapkan tinggi awal */
         }
+
         .measure.left {
             background-color: lightgreen;
         }
+
         .measure.right {
             background-color: lightcoral;
         }
+
         .result {
-            width: 100%;
-            height: 50px;
+            height: 60px;
             background-color: lightgray;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 24px;
+            font-size: 18px;
+            margin-bottom: 20px;
         }
+
         .reset-button {
-            margin-top: 20px;
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
         }
-        @media (max-width: 600px) {
-            .measure-container-inner {
-                flex-direction: column;
-            }
-            .measure {
-                width: 100%;
-                height: 150px;
-            }
+
+        .reset-button:hover {
+            background-color: #45a049;
+        }
+
+        .object.dragging {
+            position: absolute;
+            z-index: 1000;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="objects">
-            <div id="object1" class="object green" draggable="true" data-value="0.2">0.2</div>
-            <div id="object2" class="object blue" draggable="true" data-value="0.1">0.1</div>
-            <div id="object3" class="object red" draggable="true" data-value="0.3">0.3</div>
-            <div id="object4" class="object yellow" draggable="true" data-value="0.5">0.5</div>
+            <div id="object1" class="object green" data-value="2">0.2</div>
+            <div id="object2" class="object blue" data-value="1">B</div>
+            <div id="object3" class="object red" data-value="3">C</div>
+            <div id="object4" class="object yellow" data-value="5">D</div>
         </div>
         <div class="measure-container">
-            <div class="measure-container-inner">
-                <div class="measure left" id="measureA"></div>
-                <div class="measure right" id="measureB"></div>
-            </div>
-            <div id="result" class="result">Salah</div>
+            <div class="measure left" id="measureA"></div>
+            <div class="measure right" id="measureB"></div>
         </div>
+        <div id="result" class="result">Salah</div>
         <button id="resetButton" class="reset-button">Reset</button>
     </div>
 
@@ -134,48 +136,58 @@
         let leftValue = 0;
         let rightValue = 0;
 
+        // Event listener untuk setiap objek
         objects.forEach(object => {
-            object.addEventListener('dragstart', () => {
+            object.addEventListener('touchstart', (e) => {
+                e.preventDefault();
                 object.classList.add('dragging');
             });
 
-            object.addEventListener('dragend', () => {
+            object.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const offsetX = touch.clientX - object.offsetWidth / 2;
+                const offsetY = touch.clientY - object.offsetHeight / 2;
+                object.style.left = offsetX + 'px';
+                object.style.top = offsetY + 'px';
+            });
+
+            object.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                const rectA = measureA.getBoundingClientRect();
+                const rectB = measureB.getBoundingClientRect();
+                const touch = e.changedTouches[0];
+                const dropX = touch.clientX;
+                const dropY = touch.clientY;
+
+                if (dropX >= rectA.left && dropX <= rectA.right && dropY >= rectA.top && dropY <= rectA.bottom) {
+                    const value = parseFloat(object.dataset.value);
+                    leftValue += value;
+                    const clone = object.cloneNode(true);
+                    clone.classList.remove('dragging');
+                    measureA.appendChild(clone);
+                    adjustMeasureSize(measureA);
+                    adjustObject(clone, measureA);
+                } else if (dropX >= rectB.left && dropX <= rectB.right && dropY >= rectB.top && dropY <= rectB.bottom) {
+                    const value = parseFloat(object.dataset.value);
+                    rightValue += value;
+                    const clone = object.cloneNode(true);
+                    clone.classList.remove('dragging');
+                    measureB.appendChild(clone);
+                    adjustMeasureSize(measureB);
+                    adjustObject(clone, measureB);
+                }
+
+                // Reset posisi objek
+                object.removeAttribute('style');
                 object.classList.remove('dragging');
+
+                // Update hasil
+                checkResult();
             });
         });
 
-        measureA.addEventListener('dragover', e => {
-            e.preventDefault();
-        });
-
-        measureA.addEventListener('drop', e => {
-            e.preventDefault();
-            const draggedObject = document.querySelector('.dragging');
-            if (draggedObject) {
-                const value = parseFloat(draggedObject.dataset.value);
-                leftValue += value;
-                const clone = draggedObject.cloneNode(true);
-                measureA.appendChild(clone);
-                checkResult();
-            }
-        });
-
-        measureB.addEventListener('dragover', e => {
-            e.preventDefault();
-        });
-
-        measureB.addEventListener('drop', e => {
-            e.preventDefault();
-            const draggedObject = document.querySelector('.dragging');
-            if (draggedObject) {
-                const value = parseFloat(draggedObject.dataset.value);
-                rightValue += value;
-                const clone = draggedObject.cloneNode(true);
-                measureB.appendChild(clone);
-                checkResult();
-            }
-        });
-
+        // Fungsi untuk memeriksa hasil perbandingan
         function checkResult() {
             if (leftValue === rightValue) {
                 result.textContent = "Benar";
@@ -184,18 +196,37 @@
             }
         }
 
+        // Event listener untuk tombol reset
         resetButton.addEventListener('click', () => {
-            // Reset values
+            // Reset nilai
             leftValue = 0;
             rightValue = 0;
 
-            // Clear measure containers
+            // Hapus elemen di dalam pengukur
             measureA.innerHTML = '';
             measureB.innerHTML = '';
 
-            // Reset result text
+            // Reset teks hasil
             result.textContent = "Salah";
         });
+
+        // Fungsi untuk menyesuaikan ukuran objek dengan pengukur
+        function adjustObject(object, measure) {
+            const objectRect = object.getBoundingClientRect();
+            const measureRect = measure.getBoundingClientRect();
+            const scaleFactor = Math.min(measureRect.width / objectRect.width, measureRect.height / objectRect.height);
+            object.style.width = (objectRect.width * scaleFactor) + 'px';
+            object.style.height = (objectRect.height * scaleFactor) + 'px';
+        }
+
+        // Fungsi untuk menyesuaikan ukuran pengukur berdasarkan jumlah objek
+        function adjustMeasureSize(measure) {
+            const objectsInMeasure = measure.querySelectorAll('.object').length;
+            const defaultHeight = 150; // Tinggi default
+            const adjustedHeight = defaultHeight * objectsInMeasure; // Menghitung tinggi baru
+            measure.style.height = adjustedHeight + 'px'; // Set tinggi baru
+        }
     </script>
 </body>
 </html>
+
