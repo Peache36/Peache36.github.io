@@ -5,15 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Object Comparison</title>
     <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
         .container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-top: 50px;
+            width: 90%;
+            max-width: 800px;
         }
         .objects {
             display: flex;
             justify-content: center;
+            flex-wrap: wrap;
             margin-bottom: 20px;
         }
         .object {
@@ -26,6 +37,7 @@
             cursor: grab;
             color: white;
             font-weight: bold;
+            user-select: none;
         }
         .object.green {
             background-color: green;
@@ -42,10 +54,15 @@
         }
         .measure-container {
             display: flex;
-            justify-content: space-between;
-            width: 600px;
+            flex-direction: column;
+            width: 100%;
             border: 2px solid black;
             margin-bottom: 20px;
+        }
+        .measure-container-inner {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
         }
         .measure {
             display: flex;
@@ -55,6 +72,7 @@
             height: 200px;
             overflow-y: auto;
             position: relative;
+            flex-grow: 1;
         }
         .measure.left {
             background-color: lightgreen;
@@ -63,8 +81,8 @@
             background-color: lightcoral;
         }
         .result {
-            width: 600px;
-            height: 100px;
+            width: 100%;
+            height: 50px;
             background-color: lightgray;
             display: flex;
             justify-content: center;
@@ -77,21 +95,32 @@
             font-size: 16px;
             cursor: pointer;
         }
+        @media (max-width: 600px) {
+            .measure-container-inner {
+                flex-direction: column;
+            }
+            .measure {
+                width: 100%;
+                height: 150px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="objects">
-            <div id="object1" class="object green" draggable="true" data-value="2">0.2</div>
-            <div id="object2" class="object blue" draggable="true" data-value="1">B</div>
-            <div id="object3" class="object red" draggable="true" data-value="3">C</div>
-            <div id="object4" class="object yellow" draggable="true" data-value="5">D</div>
+            <div id="object1" class="object green" draggable="true" data-value="0.2">0.2</div>
+            <div id="object2" class="object blue" draggable="true" data-value="0.1">0.1</div>
+            <div id="object3" class="object red" draggable="true" data-value="0.3">0.3</div>
+            <div id="object4" class="object yellow" draggable="true" data-value="0.5">0.5</div>
         </div>
         <div class="measure-container">
-            <div class="measure left" id="measureA"></div>
-            <div class="measure right" id="measureB"></div>
+            <div class="measure-container-inner">
+                <div class="measure left" id="measureA"></div>
+                <div class="measure right" id="measureB"></div>
+            </div>
+            <div id="result" class="result">Salah</div>
         </div>
-        <div id="result" class="result">Salah</div>
         <button id="resetButton" class="reset-button">Reset</button>
     </div>
 
