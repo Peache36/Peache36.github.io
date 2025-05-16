@@ -1,56 +1,58 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Control Panel</title>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Control Panel</title>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: Arial, sans-serif;
       text-align: center;
       padding: 20px;
-      background-color: #f9f9f9;
+      background: #f0f0f0;
     }
-
     input, button {
-      padding: 10px;
-      margin: 5px;
       font-size: 16px;
+      padding: 10px 15px;
+      margin: 5px;
     }
-
     h1 {
-      color: #333;
+      margin-bottom: 10px;
     }
-
     #display {
       font-size: 48px;
-      margin: 20px 0;
+      margin: 20px 0 10px 0;
+      color: #222;
     }
-
     #roundDisplay {
       font-size: 24px;
       color: #555;
+      margin-bottom: 20px;
     }
   </style>
-
-
 </head>
 <body>
   <h1>Control Panel</h1>
 
   <label for="startTime">Set countdown (menit):</label>
-  <input type="number" id="startTime" value="3" min="1" max="60">
-  <br><br>
+  <input type="number" id="startTime" value="3" min="1" max="60" />
 
-  
+  <div>
+    <button id="startBtn">Start</button>
+    <button id="pauseBtn">Pause</button>
+    <button id="resetBtn">Reset</button>
+    <button id="prevRoundBtn">Previous Round</button>
+    <button id="nextRoundBtn">Next Round</button>
+  </div>
+
   <h2 id="display">00:00</h2>
   <h3 id="roundDisplay">Round 1</h3>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyDT-K7hjdiH8boL2nvWYrCAhBlp5CJFuHE",
       authDomain: "timer-514d6.firebaseapp.com",
@@ -65,16 +67,20 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    let timer;
-    let time = 0;
-    let countdownStart = 180;
+    let timer = null;
+    let time = 0;            // detik countdown saat ini
+    let countdownStart = 180; // default 3 menit (180 detik)
     let round = 1;
 
+    const displayEl = document.getElementById("display");
+    const roundEl = document.getElementById("roundDisplay");
+    const startTimeInput = document.getElementById("startTime");
+
     function updateDisplay() {
-      const minutes = String(Math.floor(time / 60)).padStart(2, '0');
-      const seconds = String(time % 60).padStart(2, '0');
-      document.getElementById("display").textContent = `${minutes}:${seconds}`;
-      document.getElementById("roundDisplay").textContent = `Round ${round}`;
+      const minutes = String(Math.floor(time / 60)).padStart(2, "0");
+      const seconds = String(time % 60).padStart(2, "0");
+      displayEl.textContent = `${minutes}:${seconds}`;
+      roundEl.textContent = `Round ${round}`;
     }
 
     function updateFirebase() {
@@ -85,7 +91,7 @@
     }
 
     function startTimer() {
-      if (!timer) {
+      if (timer === null) {
         timer = setInterval(() => {
           if (time > 0) {
             time--;
@@ -100,14 +106,20 @@
     }
 
     function pauseTimer() {
-      clearInterval(timer);
-      timer = null;
+      if (timer !== null) {
+        clearInterval(timer);
+        timer = null;
+      }
     }
 
     function resetTimer() {
       pauseTimer();
-      const inputMinutes = parseInt(document.getElementById("startTime").value, 10) || 1;
-      countdownStart = inputMinutes * 60;
+      const minutes = parseInt(startTimeInput.value, 10);
+      if (!minutes || minutes < 1) {
+        countdownStart = 60; // fallback 1 menit
+      } else {
+        countdownStart = minutes * 60;
+      }
       time = countdownStart;
       updateDisplay();
       updateFirebase();
@@ -115,27 +127,29 @@
 
     function nextRound() {
       round++;
+      updateDisplay();
       updateFirebase();
-      document.getElementById("roundDisplay").textContent = `Round ${round}`;
     }
 
     function previousRound() {
-      if (round > 1) round--;
-      updateFirebase();
-      document.getElementById("roundDisplay").textContent = `Round ${round}`;
+      if (round > 1) {
+        round--;
+        updateDisplay();
+        updateFirebase();
+      }
     }
 
-    // Init saat halaman dibuka
+    // Pasang event listener tombol
+    document.getElementById("startBtn").addEventListener("click", startTimer);
+    document.getElementById("pauseBtn").addEventListener("click", pauseTimer);
+    document.getElementById("resetBtn").addEventListener("click", resetTimer);
+    document.getElementById("nextRoundBtn").addEventListener("click", nextRound);
+    document.getElementById("prevRoundBtn").addEventListener("click", previousRound);
+
+    // Reset otomatis saat page load
     window.onload = () => {
       resetTimer();
     };
   </script>
-
-  <button onclick="startTimer()">Start</button>
-  <button onclick="pauseTimer()">Pause</button>
-  <button onclick="resetTimer()">Reset</button>
-  <button onclick="previousRound()">Previous Round</button>
-  <button onclick="nextRound()">Next Round</button>
-
 </body>
 </html>
